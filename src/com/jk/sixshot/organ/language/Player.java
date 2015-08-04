@@ -2,6 +2,7 @@ package com.jk.sixshot.organ.language;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,9 +15,12 @@ import com.sinovoice.hcicloudsdk.common.tts.TtsInitParam;
 import com.sinovoice.hcicloudsdk.pc.tts.player.TTSPlayer;
 import com.sinovoice.hcicloudsdk.player.TTSCommonPlayer.PlayerEvent;
 import com.sinovoice.hcicloudsdk.player.TTSPlayerListener;
-public class Speaker {
+public class Player {
 
-	private Map<String,String> accountInfo = new HashMap<String, String>();
+	//初始化HCI的错误码
+	private static int errorCode = -1;
+
+	private static Map<String,String> accountInfo = new HashMap<String, String>();
 	
 	//TTS Player
 	private TTSPlayer ttsPlayer = null;
@@ -24,23 +28,24 @@ public class Speaker {
 	//TTS 配置
 	private TtsConfig ttsConfig;
 	
-	//是否繁忙
-	private boolean isSpeaking = false;
-	
-	public Speaker(){
+	public Player(){
 		init();
 	}
 
 	private void init(){
 		
-		// 初始化加载相关库文件
-		importLibs();
-		
-		//获取账户信息
-		initAccountInfo();
-	    initEnginer();
-		initTtsPlayer();
-		initTtsConfig();
+		try{
+			// 初始化加载相关库文件
+			importLibs();
+			
+			//获取账户信息
+			initAccountInfo();
+		    initEnginer();
+			initTtsPlayer();
+			initTtsConfig();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	private void initEnginer(){
@@ -73,8 +78,7 @@ public class Speaker {
 		System.out.println("HciCloudTts HciInitConfig: " + initparam.getStringConfig());
 		
 		// 初始化System
-		//初始化HCI的错误码
-		int errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
+		errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
 		if(errorCode != HciErrorCode.HCI_ERR_NONE){
 			System.out.println("HciCloudTts init error: " + errorCode);
 			return;
@@ -97,28 +101,29 @@ public class Speaker {
     	}
 	}
 	
+//	--mCapKeyArray:[tts.cloud.wangjing, tts.local.xixi.v6]
+//	--mLangArray:[chinese, chinese]
 	@SuppressWarnings("deprecation")
 	private void initTtsConfig(){
 		ttsConfig = new TtsConfig();
 		//音频格式
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_ADUIO_FORMAT, "pcm16k16bit");
 		//所使用能力
-		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, "tts.cloud.wangjing");
+//		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, "tts.cloud.wangjing");
+		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, "tts.local.wangjing.v6");
+		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, accountInfo.get("capKey"));
+		
 		
 		//播放速度
-		ttsConfig.addParam(TtsConfig.PARAM_KEY_SPEED, "1");
+		ttsConfig.addParam(TtsConfig.PARAM_KEY_SPEED, "5");
 		//编码格式
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_ENCODE, "none");
 		
 		System.out.println("HciCloudTts TtsConfig: " + ttsConfig.getStringConfig());
 	}
 	
-	public void speak(String text){
-		try{
-			ttsPlayer.play(text, ttsConfig.getStringConfig());
-		}catch(IllegalStateException e){
-			e.printStackTrace();
-		}
+	private void play(String text){
+		ttsPlayer.play(text, ttsConfig.getStringConfig());
 	}
 	//播放器回调接口
 	private class PlayerListener implements TTSPlayerListener{
@@ -131,21 +136,31 @@ public class Speaker {
 
 		//播放进度回调
 		@Override
-		public void onPlayerEventProgressChange(PlayerEvent playerEvent, int start, int end) {
+		public void onPlayerEventProgressChange(PlayerEvent playerEvent,
+				int start, int end) {
 		}
 		
 		//状态改变回调
 		@Override
 		public void onPlayerEventStateChange(PlayerEvent playerEvent) {
 			if(playerEvent == PlayerEvent.PLAYER_EVENT_BEGIN){
-				isSpeaking = true;
+				
 			}else if(playerEvent == PlayerEvent.PLAYER_EVENT_END){
-				isSpeaking = false;
+				
 			}		
 		}		
 	}
 	private void initAccountInfo() {
-		readAccountInfo();
+		// 加载用户的初始化信息,平台id,开发者id等等
+		// 用户应用自己的信息将testdata文件夹中的文件AccountInfo.txt填充完整
+		accountInfo = new HashMap<String, String>();
+		try {
+			readAccountInfo("./resources/account-info.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+			// 读取错误,通知界面并返回
+			System.out.println("load account info error\n");
+		}
 		
 		if (accountInfo.get("capKey") ==null) {
 			System.out.println("capKey is null ,please check it\n");
@@ -175,32 +190,28 @@ public class Speaker {
 	}
 	
     //读取账户信息
-    private  void  readAccountInfo() {
-    	try{
-			FileReader filereader=null;
-			filereader = new FileReader("./resources/account-info.txt");
-			BufferedReader br = new BufferedReader(filereader);
-			String temp = null;
-			String []sInfo = new String[2];
+    private  void  readAccountInfo(String path) throws IOException{
+		FileReader filereader=null;
+		filereader = new FileReader(path);
+		BufferedReader br = new BufferedReader(filereader);
+		String temp = null;
+		String []sInfo = new String[2];
+		temp = br.readLine();
+		while(temp!=null){
+			if(!temp.startsWith("#") && !temp.equalsIgnoreCase("")){
+				sInfo = temp.split("=");
+				if(sInfo.length == 2){
+					accountInfo.put(sInfo[0], sInfo[1]);				
+				}
+			} 		
 			temp = br.readLine();
-			while(temp!=null){
-				if(!temp.startsWith("#") && !temp.equalsIgnoreCase("")){
-					sInfo = temp.split("=");
-					if(sInfo.length == 2){
-						accountInfo.put(sInfo[0], sInfo[1]);				
-					}
-				} 		
-				temp = br.readLine();
-			}
-			br.close();
-    	}catch(Exception e){
-			System.out.println("load account info error\n");
-    	}
+		}
+		br.close();
 	}
 
     
 	public static void main(String[] args) {
-		Speaker speaker = new Speaker();
-		speaker.speak("你好，世界!");
+		Player player = new Player();
+		player.play("你好，世界!");
 	}
 }

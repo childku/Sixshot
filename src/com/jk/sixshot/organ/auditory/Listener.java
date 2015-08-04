@@ -5,6 +5,9 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.text.AbstractDocument.BranchElement;
+
+import com.jk.sixshot.Sixshot;
 import com.sinovoice.hcicloudsdk.api.HciCloudSys;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
 import com.sinovoice.hcicloudsdk.common.HciErrorCode;
@@ -14,8 +17,8 @@ import com.sinovoice.hcicloudsdk.common.asr.AsrInitParam;
 import com.sinovoice.hcicloudsdk.common.asr.AsrRecogResult;
 import com.sinovoice.hcicloudsdk.pc.asr.recorder.ASRRecorder;
 import com.sinovoice.hcicloudsdk.recorder.ASRCommonRecorder;
-import com.sinovoice.hcicloudsdk.recorder.ASRRecorderListener;
 import com.sinovoice.hcicloudsdk.recorder.ASRCommonRecorder.RecorderEvent;
+import com.sinovoice.hcicloudsdk.recorder.ASRRecorderListener;
 
 public class Listener implements Runnable {
 	
@@ -23,19 +26,23 @@ public class Listener implements Runnable {
 	
 	private AsrConfig asrConfig = new AsrConfig();
 	
+	private String  capKey = "asr.cloud.freetalk";
 	//初始化HCI的错误码
 	private static int errorCode = -1;
 	
 	private boolean running = false;
 	
+	private Sixshot brain = null;
+	
 	private static Map<String,String> accountInfo = new HashMap<String, String>();
 	
 	public static void main(String[] args) {
-		Listener listener = new Listener();
-		listener.listen();
+//		Listener listener = new Listener();
+//		listener.listen();
 	}
 	
-	public Listener(){
+	public Listener(Sixshot brain){
+		this.brain = brain;
 		init();
 	}
 	
@@ -77,7 +84,7 @@ public class Listener implements Runnable {
 
 		// 初始化System
 		System.out.println("HciCloudAsr InitParam: " + initparam.getStringConfig());
-		errorCode = HciCloudSys.hciInit(initparam.getStringConfig(),null);
+		errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
 		if(errorCode != HciErrorCode.HCI_ERR_NONE){
 			System.out.println("HciCloudAsr init error: " + errorCode);
 			return;
@@ -95,13 +102,13 @@ public class Listener implements Runnable {
 		HciLibPath.setSysLibPath(sysLibPath);
 		
 		String asrLibPath[] = new String[]{
-				path + "\\libs\\libcurl.dll" ,
-				path + "\\libs\\hci_sys.dll" ,
-				path + "\\libs\\hci_sys_jni.dll" ,
-//				path + "\\libs\\hci_asr.dll" //,
-//				path + "\\libs\\hci_asr_jni.dll",
-				path + "\\libs\\hci_asr_cloud_recog.dll"
-//				path + "\\libs\\hci_asr_local_recog.dll",
+				path + "/libs/libcurl.dll" ,
+				path + "/libs/hci_sys.dll" ,
+				path + "/libs/hci_sys_jni.dll",
+				path + "/libs/hci_asr.dll" ,
+				path + "/libs/hci_asr_jni.dll",
+				path + "/libs/hci_asr_cloud_recog.dll",
+				path + "/libs/hci_asr_local_recog.dll",
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
@@ -140,7 +147,7 @@ public class Listener implements Runnable {
 	}
     
     private void initRecorder(){
-		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, accountInfo.get("capKey"));
+		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, capKey);
 		asrConfig.addParam(AsrConfig.PARAM_KEY_AUDIO_FORMAT, "pcm16k16bit");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_ENCODE, "none");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_VAD_TAIL, "600");
@@ -148,7 +155,7 @@ public class Listener implements Runnable {
     	
     	recorder = new ASRRecorder();
 		AsrInitParam initParam = new AsrInitParam();
-		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, accountInfo.get("capKey"));
+		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, capKey);
 		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, System.getProperty("user.dir") + "\\data");
 		recorder.init(initParam.getStringConfig(), new RecorderListener());
 		if(recorder.getRecorderState() != ASRCommonRecorder.RECORDER_STATE_IDLE){
@@ -161,7 +168,7 @@ public class Listener implements Runnable {
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_REALTIME, "no");
 		
-		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, accountInfo.get("capKey"));
+		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, capKey);
 		
 		System.out.println("HciCloudAsr AsrConfig: " + asrConfig.getStringConfig());
 		
@@ -182,6 +189,7 @@ public class Listener implements Runnable {
 		@Override
 		public void onRecorderEventError(RecorderEvent recorderEvent, int errorCode) {
 			System.out.println("出现错误，错误码为" + errorCode);	
+			running = false;
 		}
 
 		//识别完成回调
@@ -189,6 +197,8 @@ public class Listener implements Runnable {
 		public void onRecorderEventRecogFinsh(RecorderEvent event, AsrRecogResult result) {
 			if(result == null){
 				System.out.println("错误：返回结果集为空");	
+				running = false;
+				return;
 			}
 			
 			//识别结果显示
@@ -196,14 +206,17 @@ public class Listener implements Runnable {
 				System.out.println("识别结束,没有识别结果");
 			}else{
 				System.out.println("----------识别结果-begin--------------------------------------");
-				System.out.println(result.getRecogItemList().get(0).getRecogResult());		
+				String statement = result.getRecogItemList().get(0).getRecogResult();
+				System.out.println(statement);
+				brain.analyze(statement);
 				System.out.println("----------识别结果-end----------------------------------------");
 			}
-			
+			running = false;
 			try {
 				Thread.sleep(0);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				running = false;
 			}
 		}
 
@@ -232,9 +245,9 @@ public class Listener implements Runnable {
 			
 		}
 
-//		public void onRecorderEventRecogProcess(RecorderEvent arg0,	AsrRecogResult arg1) {
-//			
-//		}
+		public void onRecorderEventRecogProcess(RecorderEvent arg0,	AsrRecogResult arg1) {
+			
+		}
 	}
 
 
