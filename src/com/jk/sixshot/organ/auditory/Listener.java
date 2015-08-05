@@ -164,6 +164,9 @@ public class Listener implements Runnable {
     }
     
     public void listen(){
+    	if(running){
+    		return;
+    	}
 		asrConfig.addParam(AsrConfig.PARAM_KEY_DOMAIN, null);
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_REALTIME, "no");

@@ -35,16 +35,24 @@ public class Sixshot {
 				
 			}
 		}
+		speaking = false;
 		weakup();
 	}
 	
 	public void weakup(){
-		listening = true;
-		listener.listen();
+		while(true){
+			if(!speaking){
+				if(!listening){
+					listening = true;
+					listener.listen();
+				}
+			}
+		}
+//		listener.listen();
 	}
 	public static void main(String[] args) {
 		Sixshot sixshot = new Sixshot();
-		List<String> statements = new ArrayList<String>();
+//		List<String> statements = new ArrayList<String>();
 //		statements.add("《登鹳雀楼》，作者：盛唐诗人，王之涣。白日依山尽，黄河入海流。欲穷千里目，更上一层楼。");
 //		statements.add("《黄鹤楼》，作者：唐代诗人，崔颢。昔人已乘黄鹤去，此地空余黄鹤楼。黄鹤一去不复返，白云千载空悠悠。晴川历历汉阳树，芳草萋萋鹦鹉洲。日暮乡关何处是，烟波江上使人愁。");
 //		statements.add("你好！");
