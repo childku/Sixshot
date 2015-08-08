@@ -1,14 +1,9 @@
 package com.jk.sixshot.organ.language;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.HashMap;
 import java.util.Map;
 
-import com.sinovoice.hcicloudsdk.api.HciCloudSys;
+import com.jk.sixshot.Sixshot;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
-import com.sinovoice.hcicloudsdk.common.HciErrorCode;
-import com.sinovoice.hcicloudsdk.common.InitParam;
 import com.sinovoice.hcicloudsdk.common.tts.TtsConfig;
 import com.sinovoice.hcicloudsdk.common.tts.TtsInitParam;
 import com.sinovoice.hcicloudsdk.pc.tts.player.TTSPlayer;
@@ -16,7 +11,7 @@ import com.sinovoice.hcicloudsdk.player.TTSCommonPlayer.PlayerEvent;
 import com.sinovoice.hcicloudsdk.player.TTSPlayerListener;
 public class Speaker {
 
-	private Map<String,String> accountInfo = new HashMap<String, String>();
+	private Map<String,String> accountInfo = null;
 	
 	//TTS Player
 	private TTSPlayer ttsPlayer = null;
@@ -24,10 +19,15 @@ public class Speaker {
 	//TTS 配置
 	private TtsConfig ttsConfig;
 	
-	//是否繁忙
-	private boolean isSpeaking = false;
+	private Sixshot brain = null;
 	
 	public Speaker(){
+		init();
+	}
+	
+	public Speaker(Sixshot brain, Map<String,String> account){
+		this.brain = brain;
+		this.accountInfo = account;
 		init();
 	}
 
@@ -36,50 +36,8 @@ public class Speaker {
 		// 初始化加载相关库文件
 		importLibs();
 		
-		//获取账户信息
-		initAccountInfo();
-	    initEnginer();
 		initTtsPlayer();
 		initTtsConfig();
-	}
-	
-	private void initEnginer(){
-		/*------------灵云系统初始化------------------------------------------------*/
-		String authDirPath = "./UserInfo/";
-		String logDirPath = "./Log/";
-    	
-		//前置条件：无
-		InitParam initparam = new InitParam();
-		// 授权文件所在路径，此项必填
-		initparam.addParam(InitParam.PARAM_KEY_AUTH_PATH, authDirPath);
-		// 是否自动访问云授权,详见  获取授权/更新授权文件处注释
-		initparam.addParam(InitParam.PARAM_KEY_AUTO_CLOUD_AUTH, "no");
-		// 灵云云服务的接口地址，此项必填
-		initparam.addParam(InitParam.PARAM_KEY_CLOUD_URL, accountInfo.get("cloudUrl"));	
-		// 开发者Key，此项必填，由捷通华声提供
-		initparam.addParam(InitParam.PARAM_KEY_DEVELOPER_KEY, accountInfo.get("developerKey"));
-		// 开发者ID，此项必填，由捷通华声提供
-		initparam.addParam(InitParam.PARAM_KEY_APP_KEY, accountInfo.get("appKey"));
-		//开发者密钥，此项必填，由捷通华声提供
-		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_COUNT, "5");
-		//日志数目，默认保留多少个日志文件，超过则覆盖最旧的日志
-		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, logDirPath);
-		//日志的路径，可选，如果不传或者为空则不生成日志
-		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_SIZE, "1024");
-		//日志大小，默认一个日志文件写多大，单位为K
-		initparam.addParam(InitParam.PARAM_KEY_LOG_LEVEL, "5");
-		//日志等级，0=无，1=错误，2=警告，3=信息，4=细节，5=调试，SDK将输出小于等于logLevel的日志信息
-		
-		System.out.println("HciCloudTts HciInitConfig: " + initparam.getStringConfig());
-		
-		// 初始化System
-		//初始化HCI的错误码
-		int errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
-		if(errorCode != HciErrorCode.HCI_ERR_NONE){
-			System.out.println("HciCloudTts init error: " + errorCode);
-			return;
-		}
-		System.out.println("HciCloudTts init OK");
 	}
 	
 	//TTS Player 初始化
@@ -126,7 +84,7 @@ public class Speaker {
 		//错误信息回调
 		@Override
 		public void onPlayerEventPlayerError(PlayerEvent playerEvent, int errorCode) {
-			System.out.println("程序已出错，错误码为"+errorCode);
+			System.out.println(" speaker 程序已出错，错误码为"+errorCode);
 		}
 
 		//播放进度回调
@@ -138,28 +96,15 @@ public class Speaker {
 		@Override
 		public void onPlayerEventStateChange(PlayerEvent playerEvent) {
 			if(playerEvent == PlayerEvent.PLAYER_EVENT_BEGIN){
-				isSpeaking = true;
+				System.out.println("---in speaker , 开始说话 ");
 			}else if(playerEvent == PlayerEvent.PLAYER_EVENT_END){
-				isSpeaking = false;
+				System.out.println("---in speaker , 话已说完 ");
+				brain.weakup();
 			}		
 		}		
 	}
-	private void initAccountInfo() {
-		readAccountInfo();
-		
-		if (accountInfo.get("capKey") ==null) {
-			System.out.println("capKey is null ,please check it\n");
-			return;
-		}
-	}
 	private static void importLibs(){
 		String path =System.getProperty("user.dir");
-		String sysLibPath[] = new String[]{
-				path + "/libs/libcurl.dll" ,
-				path + "/libs/hci_sys.dll" ,
-				path + "/libs/hci_sys_jni.dll" 
-		};
-		HciLibPath.setSysLibPath(sysLibPath);
 		
 		String ttsLibPath[] = new String[]{
 				path + "\\libs\\libcurl.dll",
@@ -173,31 +118,6 @@ public class Speaker {
 		};
 		HciLibPath.setTtsLibPath(ttsLibPath);
 	}
-	
-    //读取账户信息
-    private  void  readAccountInfo() {
-    	try{
-			FileReader filereader=null;
-			filereader = new FileReader("./resources/account-info.txt");
-			BufferedReader br = new BufferedReader(filereader);
-			String temp = null;
-			String []sInfo = new String[2];
-			temp = br.readLine();
-			while(temp!=null){
-				if(!temp.startsWith("#") && !temp.equalsIgnoreCase("")){
-					sInfo = temp.split("=");
-					if(sInfo.length == 2){
-						accountInfo.put(sInfo[0], sInfo[1]);				
-					}
-				} 		
-				temp = br.readLine();
-			}
-			br.close();
-    	}catch(Exception e){
-			System.out.println("load account info error\n");
-    	}
-	}
-
     
 	public static void main(String[] args) {
 		Speaker speaker = new Speaker();
