@@ -9,7 +9,7 @@ import java.util.Random;
 import com.jk.sixshot.Instruction;
 
 public class StatementAnalyzer {
-	private Map<String, List<String>> abc = new HashMap<String, List<String>>();
+	private Map<String, List<String>> answers = new HashMap<String, List<String>>();
 	
 	private Map<String, String> poems = new HashMap<String, String>();
 	
@@ -21,40 +21,62 @@ public class StatementAnalyzer {
 		List<String> statements = null;
 		
 		statements = new ArrayList<String>();
-		statements.add("呜呜，说慢点，我没听懂！");
+		statements.add("说慢点，我没听懂！");
 		statements.add("别说太快啊，太快了我跟不上！");
 		statements.add("慢点说，别急！");
 		statements.add("你这话是什么意思？");
-		statements.add("这...这...");
-		abc.put("不知道怎么说", statements);
+		statements.add("你说的这是啥意思？");
+		answers.put("不知道怎么说", statements);
 		
 		statements = new ArrayList<String>();
 		statements.add("你好！");
 		statements.add("诶，在！");
 		statements.add("在呢！");
-		statements.add("啥事儿？");
-		abc.put("豆豆", statements);
+		statements.add("啥事？");
+		statements.add("嗨，你好！");
+		answers.put("豆豆", statements);
 		
 		statements = new ArrayList<String>();
 		statements.add("你好！");
 		statements.add("你好呀！");
 		statements.add("你好，我是豆豆！");
 		statements.add("你好，有什么需要帮助的么？虽然我帮不了你太多。");
-		abc.put("问好", statements);
+		answers.put("问好", statements);
+		
+		statements = new ArrayList<String>();
+		statements.add("你也很棒！");
+		statements.add("别夸奖我，我会不好意思的");
+		statements.add("还差的远呢！");
+		statements.add("还有努力的空间，我还要努力！");
+		answers.put("真棒", statements);
 		
 		statements = new ArrayList<String>();
 		statements.add("我叫豆豆！");
 		statements.add("我叫豆豆，黄豆的豆儿！");
 		statements.add("我叫豆豆，你呢！？");
-		statements.add("恩，我叫豆豆。");
-		abc.put("名字", statements);
+		statements.add("我叫豆豆。");
+		answers.put("名字", statements);
+		
+		statements = new ArrayList<String>();
+		statements.add("我三岁了");
+		statements.add("我三岁了，你呢？");
+		statements.add("今年我三岁");
+		statements.add("我已经三岁了，是个大孩子了！");
+		answers.put("几岁", statements);
+		
+		statements = new ArrayList<String>();
+		statements.add("我属兔");
+		statements.add("我属兔的，小白兔的兔？");
+		statements.add("我属小白兔的");
+		statements.add("我属兔子的，你呢？");
+		answers.put("属啥", statements);
 		
 		statements = new ArrayList<String>();
 		statements.add("这首诗我还没学会哦，等我学会了在背给你听吧！");
 		statements.add("这是谁的诗啊，我怎么没学过！");
 		statements.add("真的有这首诗么？我怎么没学过呢？");
-		statements.add("恩--恩，那个不好意思啊，你看要不我给你背首《登鹳雀楼》怎么样？");
-		abc.put("没有这首诗", statements);
+		statements.add("那个不好意思啊，你看要不我给你背首《登鹳雀楼》怎么样？");
+		answers.put("没有这首诗", statements);
 	}
 	
 	private void initPoems(){
@@ -63,6 +85,21 @@ public class StatementAnalyzer {
 		poems.put("黄鹤楼", "《黄鹤楼》，作者：唐代诗人，崔颢。昔人已乘黄鹤去，此地空余黄鹤楼。黄鹤一去不复返，白云千载空悠悠。晴川历历汉阳树，芳草萋萋鹦鹉洲。日暮乡关何处是，烟波江上使人愁。");
 		
 		poems.put("枫桥夜泊", "《枫桥夜泊》，作者：唐代诗人，张继。月落乌啼霜满天，江枫渔火对愁眠。姑苏城外寒山寺，夜半钟声到客船。");
+		
+		String poem = "《咏鹅》，作者：初唐诗人骆宾王。鹅鹅鹅，曲项向天歌。白毛浮绿水，红掌拨清波";
+		poems.put("鹅鹅鹅", poem);
+		poems.put("咏鹅", poem);
+		poems.put("额额额", poem);
+		
+		poem = "《悯农》，作者：唐代诗人，李绅。锄禾日当午，汗滴禾下土。谁知盘中餐，粒粒皆辛苦。";
+		poems.put("锄禾", poem);
+		poems.put("悯农", poem);
+		
+		poem = "《好的————》。小老鼠上登台，偷油吃下不来。喵喵喵，猫来了，叽里咕噜滚下来！";
+		poems.put("小老鼠", poem);
+		
+		poem = "《好————》。登登冷登登，登登冷登登。一只小老鼠，瞪着俩眼珠。呲着两只小牙，长着八字胡。登登冷登登，登登冷登登。一只小花猫，喵喵喵喵喵，吓得老鼠赶紧往回跑！";
+		poems.put("一只小老鼠", poem);
 	}
 	
 	public List<Instruction> analyze(String statement){
@@ -77,10 +114,27 @@ public class StatementAnalyzer {
 		}else if(statement.contains("名字")){
 			instruction = new Instruction();
 			instruction.setInstruction(getStatement("名字"));
+		}else if(statement.contains("几岁")||
+				statement.contains("多大")){
+			instruction = new Instruction();
+			instruction.setInstruction(getStatement("几岁"));
+		}else if(statement.contains("属啥")||
+				statement.contains("属什么")){
+			instruction = new Instruction();
+			instruction.setInstruction(getStatement("属啥"));
+		}else if(statement.contains("你真棒")||
+				statement.contains("豆豆真棒")){
+			instruction = new Instruction();
+			instruction.setInstruction(getStatement("真棒"));
 		}else if(statement.contains("北首")||
 				statement.contains("被首")||
 				statement.contains("背首")||
-				statement.contains("被手")){
+				statement.contains("背熟")||
+				statement.contains("备受")||
+				statement.contains("背熟")||
+				statement.contains("对手")||
+				statement.contains("被手")||
+				statement.contains("被个")){
 			String action = null;
 			if(statement.contains("北首")){
 				action = "北首";
@@ -88,8 +142,18 @@ public class StatementAnalyzer {
 				action = "被首";
 			}else if(statement.contains("背首")){
 				action = "背首";
-			}else if(statement.contains("背首")){
-				action = "背首";
+			}else if(statement.contains("备受")){
+				action = "备受";
+			}else if(statement.contains("背熟")){
+				action = "背熟";
+			}else if(statement.contains("背熟")){
+				action = "背熟";
+			}else if(statement.contains("对手")){
+				action = "对手";
+			}else if(statement.contains("被手")){
+				action = "被手";
+			}else if(statement.contains("被个")){
+				action = "被个";
 			}
 			
 			String poemName = statement.substring(statement.indexOf(action));
@@ -114,7 +178,7 @@ public class StatementAnalyzer {
 		List<String> statements = null;
 		String statement = null;
 		
-		statements = abc.get(key);
+		statements = answers.get(key);
 		if(statements==null||statements.isEmpty()){
 			statement = getStatement("不知道怎么说");
 		}else{

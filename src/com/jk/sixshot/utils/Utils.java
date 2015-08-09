@@ -1,22 +1,31 @@
 package com.jk.sixshot.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Utils {
+import com.jk.sixshot.Account;
 
-	public static Map<String,String>  getAccountInfo(){
-		return readAccountInfo();
+public class Utils {
+	
+	public static String getClassPath(){
+		return Account.class.getClassLoader().getResource("").getPath();
+	}
+	
+	public static Account getAccount(){
+		return loadAccount();
 	}
 	
 	   //读取账户信息
-    private  static Map<String,String>  readAccountInfo() {
+    private  static Account  loadAccount() {
     	Map<String,String> accountInfo = new HashMap<String, String>();
     	try{
 			FileReader filereader=null;
-			filereader = new FileReader("./resources/account-info.txt");
+			String path = getClassPath() + "account-info.txt";
+			
+			filereader = new FileReader(new File(path));
 			BufferedReader br = new BufferedReader(filereader);
 			String temp = null;
 			String []sInfo = new String[2];
@@ -32,8 +41,18 @@ public class Utils {
 			}
 			br.close();
     	}catch(Exception e){
+    		e.printStackTrace();
 			System.out.println("load account info error\n");
     	}
-    	return accountInfo;
+    	Account account = new Account();
+    	account.setAppKey(accountInfo.get("appKey"));
+    	account.setDeveloperKey(accountInfo.get("developerKey"));
+    	account.setCloudUrl(accountInfo.get("cloudUrl"));
+    	account.setTtsCapKey(accountInfo.get("capKey"));
+    	return account;
 	}
+
+    public static void main(String ...args){
+    	loadAccount();
+    }
 }

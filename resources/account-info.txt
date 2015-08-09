@@ -13,4 +13,6 @@ developerKey=350a5c0a926b32307f2769b10ca53a36
 cloudUrl=test.api.hcicloud.com:8888
 
 #需要运行的灵云能力
-capKey=tts.cloud.wangjing
+#capKey=tts.cloud.wangjing
+capKey=tts.local.xixi.v6
+#capKey=tts.local.xixi

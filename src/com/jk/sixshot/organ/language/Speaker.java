@@ -1,8 +1,8 @@
 package com.jk.sixshot.organ.language;
 
-import java.util.Map;
-
+import com.jk.sixshot.Account;
 import com.jk.sixshot.Sixshot;
+import com.jk.sixshot.utils.Utils;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
 import com.sinovoice.hcicloudsdk.common.tts.TtsConfig;
 import com.sinovoice.hcicloudsdk.common.tts.TtsInitParam;
@@ -11,7 +11,7 @@ import com.sinovoice.hcicloudsdk.player.TTSCommonPlayer.PlayerEvent;
 import com.sinovoice.hcicloudsdk.player.TTSPlayerListener;
 public class Speaker {
 
-	private Map<String,String> accountInfo = null;
+	private Account account = null;
 	
 	//TTS Player
 	private TTSPlayer ttsPlayer = null;
@@ -25,14 +25,13 @@ public class Speaker {
 		init();
 	}
 	
-	public Speaker(Sixshot brain, Map<String,String> account){
+	public Speaker(Sixshot brain, Account account){
 		this.brain = brain;
-		this.accountInfo = account;
+		this.account = account;
 		init();
 	}
 
 	private void init(){
-		
 		// 初始化加载相关库文件
 		importLibs();
 		
@@ -43,11 +42,10 @@ public class Speaker {
 	//TTS Player 初始化
 	private  void  initTtsPlayer(){
 		ttsPlayer =new TTSPlayer();
-		//本地音库路径
-		String ttsDirPath = "data";
 		TtsInitParam ttsInitParam = new TtsInitParam();
-    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, ttsDirPath);
-    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_INIT_CAP_KEYS, accountInfo.get("capKey"));
+		//本地音库路径
+    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, Utils.getClassPath() + "voice-data/");
+    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_INIT_CAP_KEYS, account.getTtsCapKey());
     	//播放器初始化
     	ttsPlayer.init(ttsInitParam.getStringConfig(), new PlayerListener());
     	if(ttsPlayer.getPlayerState() != TTSPlayer.PLAYER_STATE_IDLE){
@@ -60,15 +58,16 @@ public class Speaker {
 		ttsConfig = new TtsConfig();
 		//音频格式
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_ADUIO_FORMAT, "pcm16k16bit");
+		//tts.local.xixi.v6
 		//所使用能力
-		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, "tts.cloud.wangjing");
+		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, account.getTtsCapKey());
 		
 		//播放速度
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_SPEED, "1");
 		//编码格式
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_ENCODE, "none");
 		
-		System.out.println("HciCloudTts TtsConfig: " + ttsConfig.getStringConfig());
+		System.out.println("---speaker, ttsConfig: " + ttsConfig.getStringConfig());
 	}
 	
 	public void speak(String text){
@@ -78,13 +77,14 @@ public class Speaker {
 			e.printStackTrace();
 		}
 	}
+	
 	//播放器回调接口
 	private class PlayerListener implements TTSPlayerListener{
 
 		//错误信息回调
 		@Override
 		public void onPlayerEventPlayerError(PlayerEvent playerEvent, int errorCode) {
-			System.out.println(" speaker 程序已出错，错误码为"+errorCode);
+			System.out.println(" speaker 程序已出错，错误码为" + errorCode);
 		}
 
 		//播放进度回调
@@ -104,17 +104,17 @@ public class Speaker {
 		}		
 	}
 	private static void importLibs(){
-		String path =System.getProperty("user.dir");
-		
+		String classPath = Utils.getClassPath();
 		String ttsLibPath[] = new String[]{
-				path + "\\libs\\libcurl.dll",
-				path + "\\libs\\jtopus.dll",
-				path + "\\libs\\jtspeex.dll",
-				path + "\\libs\\hci_sys.dll",
-				path + "\\libs\\hci_tts.dll",
-				path + "\\libs\\hci_tts_local_v6_synth.dll",
-				path + "\\libs\\hci_tts_cloud_synth.dll",
-				path + "\\libs\\hci_tts_jni.dll",
+				classPath + "libs/libcurl.dll",
+				classPath + "libs/jtopus.dll",
+				classPath + "libs/jtspeex.dll",
+				classPath + "libs/hci_sys.dll",
+				classPath + "libs/hci_tts.dll",
+				classPath + "libs/hci_tts_local_v6_synth.dll",
+//				path + "libs/hci_tts_local_synth.dll",
+				classPath + "libs/hci_tts_cloud_synth.dll",
+				classPath + "libs/hci_tts_jni.dll"
 		};
 		HciLibPath.setTtsLibPath(ttsLibPath);
 	}

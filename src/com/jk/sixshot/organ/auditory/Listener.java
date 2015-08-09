@@ -1,8 +1,8 @@
 package com.jk.sixshot.organ.auditory;
 
-import java.util.Map;
-
+import com.jk.sixshot.Account;
 import com.jk.sixshot.Sixshot;
+import com.jk.sixshot.utils.Utils;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
 import com.sinovoice.hcicloudsdk.common.asr.AsrConfig;
 import com.sinovoice.hcicloudsdk.common.asr.AsrInitParam;
@@ -18,20 +18,22 @@ public class Listener {
 	
 	private AsrConfig asrConfig = new AsrConfig();
 	
-	private String  capKey = "asr.cloud.freetalk";
+	private String  asrCapKey = "asr.cloud.freetalk";
+//	private String  asrCapKey = "asr.local.grammar";
+//	private String  asrCapKey = "asr.local.grammar.chinese";
 	
 	private Sixshot brain = null;
 	
-	private Map<String,String> accountInfo = null;
+	private Account account = null;
 	
 	public static void main(String[] args) {
 //		Listener listener = new Listener();
 //		listener.listen();
 	}
 	
-	public Listener(Sixshot brain, Map<String,String> account){
+	public Listener(Sixshot brain, Account account){
 		this.brain = brain;
-		this.accountInfo = account;
+		this.account = account;
 		init();
 	}
 	
@@ -40,22 +42,22 @@ public class Listener {
 		initRecorder();
 	}
 	private static void importLibs(){
-		String path = System.getProperty("user.dir");
+		String classPath = Utils.getClassPath();
 		
 		String asrLibPath[] = new String[]{
-				path + "/libs/libcurl.dll" ,
-				path + "/libs/hci_sys.dll" ,
-				path + "/libs/hci_sys_jni.dll",
-				path + "/libs/hci_asr.dll" ,
-				path + "/libs/hci_asr_jni.dll",
-				path + "/libs/hci_asr_cloud_recog.dll",
-				path + "/libs/hci_asr_local_recog.dll",
+				classPath + "libs/libcurl.dll" ,
+				classPath + "libs/hci_sys.dll" ,
+				classPath + "libs/hci_sys_jni.dll",
+				classPath + "libs/hci_asr.dll" ,
+				classPath + "libs/hci_asr_jni.dll",
+				classPath + "libs/hci_asr_cloud_recog.dll",
+				classPath + "libs/hci_asr_local_recog.dll",
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
 
     private void initRecorder(){
-		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, capKey);
+		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, asrCapKey);
 		asrConfig.addParam(AsrConfig.PARAM_KEY_AUDIO_FORMAT, "pcm16k16bit");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_ENCODE, "none");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_VAD_TAIL, "600");
@@ -63,8 +65,8 @@ public class Listener {
     	
     	recorder = new ASRRecorder();
 		AsrInitParam initParam = new AsrInitParam();
-		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, capKey);
-		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, System.getProperty("user.dir") + "\\data");
+		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, asrCapKey);
+		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, Utils.getClassPath() + "voice-data/");
 		recorder.init(initParam.getStringConfig(), new RecorderListener());
 		if(recorder.getRecorderState() != ASRCommonRecorder.RECORDER_STATE_IDLE){
 			System.out.println("初始化失败了！");
@@ -76,20 +78,29 @@ public class Listener {
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_REALTIME, "no");
 		
-		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, capKey);
-		
-		System.out.println("HciCloudAsr AsrConfig: " + asrConfig.getStringConfig());
+		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, asrCapKey);
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_IS_FILE, "no");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "id");
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
-		System.out.println("asrConfig = " + asrConfig.getStringConfig());
+		System.out.println("---listener, asrConfig = " + asrConfig.getStringConfig());
 		
 		listening();
     }
     
-
+	private void listening(){
+		System.out.println("---in listener， recorder state is : " + recorder.getRecorderState());
+		if(recorder.getRecorderState() == ASRCommonRecorder.RECORDER_STATE_IDLE){
+			try {
+				System.out.println("---in listener  recorder start");
+				recorder.start(asrConfig.getStringConfig(), null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private class RecorderListener implements ASRRecorderListener{
 
 		@Override
@@ -111,8 +122,13 @@ public class Listener {
 			}else{
 				System.out.println("----------识别结果-begin--------------------------------------");
 				String statement = result.getRecogItemList().get(0).getRecogResult();
-				System.out.println(statement);
-				brain.analyze(statement);
+				System.out.println("----" + statement);
+				if(statement.trim().equals("")){
+//					System.out.println("---listener, to be weakup, recorder state is : " + recorder.getRecorderState());
+					brain.weakup();
+				}else{
+					brain.analyze(statement);
+				}
 				System.out.println("----------识别结果-end----------------------------------------");
 			}
 			try {
@@ -125,6 +141,7 @@ public class Listener {
 		//状态改变回调
 		@Override
 		public void onRecorderEventStateChange(RecorderEvent event) {
+//			System.out.println("---listener, event state ：" + event);
 			try {
 				if(event == RecorderEvent.RECORDER_EVENT_BEGIN_RECORD){
 					Thread.sleep(500);
@@ -152,15 +169,4 @@ public class Listener {
 		}
 	}
 
-	private void listening(){
-		System.out.println("---in listener， recorder state is : " + recorder.getRecorderState());
-		if(recorder.getRecorderState() == ASRCommonRecorder.RECORDER_STATE_IDLE){
-			try {
-				System.out.println("---in listener  recorder start");
-				recorder.start(asrConfig.getStringConfig(), null);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }
