@@ -44,7 +44,7 @@ public class Speaker {
 		ttsPlayer =new TTSPlayer();
 		TtsInitParam ttsInitParam = new TtsInitParam();
 		//本地音库路径
-    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, Utils.getClassPath() + "voice-data/");
+    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, Utils.getRootConfigPath() + "voice-data/");
     	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_INIT_CAP_KEYS, account.getTtsCapKey());
     	//播放器初始化
     	ttsPlayer.init(ttsInitParam.getStringConfig(), new PlayerListener());
@@ -104,7 +104,7 @@ public class Speaker {
 		}		
 	}
 	private static void importLibs(){
-		String classPath = Utils.getClassPath();
+		String classPath = Utils.getRootConfigPath();
 		String ttsLibPath[] = new String[]{
 				classPath + "libs/libcurl.dll",
 				classPath + "libs/jtopus.dll",

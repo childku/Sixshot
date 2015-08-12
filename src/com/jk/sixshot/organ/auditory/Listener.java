@@ -1,10 +1,17 @@
 package com.jk.sixshot.organ.auditory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import com.jk.sixshot.Account;
 import com.jk.sixshot.Sixshot;
 import com.jk.sixshot.utils.Utils;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
+import com.sinovoice.hcicloudsdk.api.asr.HciCloudAsr;
 import com.sinovoice.hcicloudsdk.common.asr.AsrConfig;
+import com.sinovoice.hcicloudsdk.common.asr.AsrGrammarId;
 import com.sinovoice.hcicloudsdk.common.asr.AsrInitParam;
 import com.sinovoice.hcicloudsdk.common.asr.AsrRecogResult;
 import com.sinovoice.hcicloudsdk.pc.asr.recorder.ASRRecorder;
@@ -18,9 +25,10 @@ public class Listener {
 	
 	private AsrConfig asrConfig = new AsrConfig();
 	
-	private String  asrCapKey = "asr.cloud.freetalk";
+//	private String  asrCapKey = "asr.cloud.freetalk";
 //	private String  asrCapKey = "asr.local.grammar";
 //	private String  asrCapKey = "asr.local.grammar.chinese";
+	private String  asrCapKey = "asr.local.grammar.chinese.v4";
 	
 	private Sixshot brain = null;
 	
@@ -42,7 +50,7 @@ public class Listener {
 		initRecorder();
 	}
 	private static void importLibs(){
-		String classPath = Utils.getClassPath();
+		String classPath = Utils.getRootConfigPath();
 		
 		String asrLibPath[] = new String[]{
 				classPath + "libs/libcurl.dll" ,
@@ -50,8 +58,30 @@ public class Listener {
 				classPath + "libs/hci_sys_jni.dll",
 				classPath + "libs/hci_asr.dll" ,
 				classPath + "libs/hci_asr_jni.dll",
-				classPath + "libs/hci_asr_cloud_recog.dll",
-				classPath + "libs/hci_asr_local_recog.dll",
+//				classPath + "libs/hci_asr_cloud_recog.dll",
+//				classPath + "libs/hci_asr_local_recog.dll"
+				classPath + "libs/hci_asr_local_v4_recog.dll",
+				
+				classPath + "libs/libmmd.dll",
+				classPath + "libs/mkl_avx.dll",
+				classPath + "libs/mkl_avx2.dll",
+				classPath + "libs/mkl_core.dll",
+				classPath + "libs/mkl_p4.dll",
+				classPath + "libs/mkl_p4m.dll",
+				classPath + "libs/mkl_p4m3.dll",
+				classPath + "libs/mkl_p4p.dll",
+				classPath + "libs/mkl_rt.dll",
+				classPath + "libs/mkl_sequential.dll",
+				classPath + "libs/mkl_vml_avx.dll",
+				classPath + "libs/mkl_vml_avx2.dll",
+				classPath + "libs/mkl_vml_cmpt.dll",
+				classPath + "libs/mkl_vml_ia.dll",
+				classPath + "libs/mkl_vml_p4.dll",
+				classPath + "libs/mkl_vml_p4m.dll",
+				classPath + "libs/mkl_vml_p4m2.dll",
+				classPath + "libs/mkl_vml_p4m3.dll",
+				classPath + "libs/mkl_vml_p4p.dll",
+				classPath + "libs/svml_dispmd.dll"
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
@@ -66,13 +96,60 @@ public class Listener {
     	recorder = new ASRRecorder();
 		AsrInitParam initParam = new AsrInitParam();
 		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, asrCapKey);
-		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, Utils.getClassPath() + "voice-data/");
+		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, Utils.getRootConfigPath() + "voice-data/");
 		recorder.init(initParam.getStringConfig(), new RecorderListener());
 		if(recorder.getRecorderState() != ASRCommonRecorder.RECORDER_STATE_IDLE){
-			System.out.println("初始化失败了！");
+			System.out.println("---listener, 初始化失败了！");
     	}
     }
     
+    
+	/**
+	 * 加载本地语法
+	 * @param grammarConfig AsrConfig获取的配置字符串
+	 * @param grammar 加载的语法字符串
+	 * @return
+	 */
+	private String getByLoadGrammar(String grammarConfig, String grammar) {
+		AsrGrammarId grammarId = new AsrGrammarId();
+		
+		int errorCode = HciCloudAsr.hciAsrLoadGrammar(grammarConfig, grammar, grammarId);
+		
+		System.out.println("---listener, HciCloudAsr Frame LoadGrammar return:" + errorCode);
+		return grammarId.getGrammarId() + "";
+	}
+	
+	private String loadGrammarFile(String path) {
+		ByteArrayOutputStream baos = null;
+		FileInputStream fis = null;
+		String grammar = null;
+		try{
+			File grammarFile = new File(path);
+			baos = new ByteArrayOutputStream();
+			fis = new FileInputStream(grammarFile);
+			byte[] buf = new byte[1024];
+			int len = 0;
+			while((len = fis.read(buf)) > 0){
+				baos.write(buf, 0, len);
+			}
+			grammar = new String(baos.toByteArray(), "utf-8");
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}finally{
+			try {
+				if(fis != null){
+					fis.close();
+				}
+				if(baos != null){
+					baos.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return grammar;
+	}
+	
     public void listen(){
 		asrConfig.addParam(AsrConfig.PARAM_KEY_DOMAIN, null);
 		
@@ -81,9 +158,16 @@ public class Listener {
 		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, asrCapKey);
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_IS_FILE, "no");
-		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "id");
-		
-		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "id");
+		String classPath = Utils.getRootConfigPath();
+		String grammar = loadGrammarFile(classPath + "wordlist_utf8.txt");
+		System.out.println("---listener, grammar = " + grammar);
+//		String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
+		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
+		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "jsgf");
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
+		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, grammarId);
 		System.out.println("---listener, asrConfig = " + asrConfig.getStringConfig());
 		
 		listening();
@@ -93,6 +177,7 @@ public class Listener {
 		System.out.println("---in listener， recorder state is : " + recorder.getRecorderState());
 		if(recorder.getRecorderState() == ASRCommonRecorder.RECORDER_STATE_IDLE){
 			try {
+				String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
 				System.out.println("---in listener  recorder start");
 				recorder.start(asrConfig.getStringConfig(), null);
 			} catch (Exception e) {

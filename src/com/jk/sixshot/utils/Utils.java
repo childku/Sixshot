@@ -10,20 +10,22 @@ import com.jk.sixshot.Account;
 
 public class Utils {
 	
-	public static String getClassPath(){
-		return Account.class.getClassLoader().getResource("").getPath();
+	public static String getRootConfigPath(){
+		String classPath = Account.class.getClassLoader().getResource("").getPath();
+		System.out.println("---utils, classPath = " + classPath);
+		return classPath;
 	}
 	
 	public static Account getAccount(){
 		return loadAccount();
 	}
-	
+
 	   //读取账户信息
     private  static Account  loadAccount() {
     	Map<String,String> accountInfo = new HashMap<String, String>();
     	try{
 			FileReader filereader=null;
-			String path = getClassPath() + "account-info.txt";
+			String path = getRootConfigPath() + "account-info.txt";
 			
 			filereader = new FileReader(new File(path));
 			BufferedReader br = new BufferedReader(filereader);

@@ -32,7 +32,7 @@ public class Sixshot {
 		account = Utils.getAccount();
 	}
 	private void initSysLibs(){
-		String classPath = Utils.getClassPath();
+		String classPath = Utils.getRootConfigPath();
 		String sysLibPath[] = new String[]{
 				classPath + "libs/libcurl.dll" ,
 				classPath + "libs/hci_sys.dll" ,
@@ -44,8 +44,8 @@ public class Sixshot {
 	private void initEngine(){
 
 		//系统初始化及获取能力信息
-		String authPath = Utils.getClassPath() + "user-info/";
-//		String logDirPath = "./Log/";
+		String authPath = Utils.getRootConfigPath() + "user-info/";
+		String logDirPath = "./Log/";
 		
 		//前置条件：无
 		InitParam initparam = new InitParam();
@@ -60,8 +60,8 @@ public class Sixshot {
 		// 开发者ID，此项必填，由捷通华声提供
 		initparam.addParam(InitParam.PARAM_KEY_APP_KEY, account.getAppKey());
 		//日志的路径，可选，如果不传或者为空则不生成日志
-//		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, logDirPath);
-		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, null);
+		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, logDirPath);
+//		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, null);
 		//日志数目，默认保留多少个日志文件，超过则覆盖最旧的日志
 		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_COUNT, "5");
 		//日志大小，默认一个日志文件写多大，单位为K
