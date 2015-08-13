@@ -25,10 +25,10 @@ public class Listener {
 	
 	private AsrConfig asrConfig = new AsrConfig();
 	
-//	private String  asrCapKey = "asr.cloud.freetalk";
+	private String  asrCapKey = "asr.cloud.freetalk";
 //	private String  asrCapKey = "asr.local.grammar";
 //	private String  asrCapKey = "asr.local.grammar.chinese";
-	private String  asrCapKey = "asr.local.grammar.chinese.v4";
+//	private String  asrCapKey = "asr.local.grammar.chinese.v4";
 	
 	private Sixshot brain = null;
 	
@@ -58,30 +58,30 @@ public class Listener {
 				classPath + "libs/hci_sys_jni.dll",
 				classPath + "libs/hci_asr.dll" ,
 				classPath + "libs/hci_asr_jni.dll",
-//				classPath + "libs/hci_asr_cloud_recog.dll",
+				classPath + "libs/hci_asr_cloud_recog.dll",
 //				classPath + "libs/hci_asr_local_recog.dll"
-				classPath + "libs/hci_asr_local_v4_recog.dll",
+//				classPath + "libs/hci_asr_local_v4_recog.dll",
 				
-				classPath + "libs/libmmd.dll",
-				classPath + "libs/mkl_avx.dll",
-				classPath + "libs/mkl_avx2.dll",
-				classPath + "libs/mkl_core.dll",
-				classPath + "libs/mkl_p4.dll",
-				classPath + "libs/mkl_p4m.dll",
-				classPath + "libs/mkl_p4m3.dll",
-				classPath + "libs/mkl_p4p.dll",
-				classPath + "libs/mkl_rt.dll",
-				classPath + "libs/mkl_sequential.dll",
-				classPath + "libs/mkl_vml_avx.dll",
-				classPath + "libs/mkl_vml_avx2.dll",
-				classPath + "libs/mkl_vml_cmpt.dll",
-				classPath + "libs/mkl_vml_ia.dll",
-				classPath + "libs/mkl_vml_p4.dll",
-				classPath + "libs/mkl_vml_p4m.dll",
-				classPath + "libs/mkl_vml_p4m2.dll",
-				classPath + "libs/mkl_vml_p4m3.dll",
-				classPath + "libs/mkl_vml_p4p.dll",
-				classPath + "libs/svml_dispmd.dll"
+//				classPath + "libs/libmmd.dll",
+//				classPath + "libs/mkl_avx.dll",
+//				classPath + "libs/mkl_avx2.dll",
+//				classPath + "libs/mkl_core.dll",
+//				classPath + "libs/mkl_p4.dll",
+//				classPath + "libs/mkl_p4m.dll",
+//				classPath + "libs/mkl_p4m3.dll",
+//				classPath + "libs/mkl_p4p.dll",
+//				classPath + "libs/mkl_rt.dll",
+//				classPath + "libs/mkl_sequential.dll",
+//				classPath + "libs/mkl_vml_avx.dll",
+//				classPath + "libs/mkl_vml_avx2.dll",
+//				classPath + "libs/mkl_vml_cmpt.dll",
+//				classPath + "libs/mkl_vml_ia.dll",
+//				classPath + "libs/mkl_vml_p4.dll",
+//				classPath + "libs/mkl_vml_p4m.dll",
+//				classPath + "libs/mkl_vml_p4m2.dll",
+//				classPath + "libs/mkl_vml_p4m3.dll",
+//				classPath + "libs/mkl_vml_p4p.dll",
+//				classPath + "libs/svml_dispmd.dll"
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
@@ -166,8 +166,8 @@ public class Listener {
 		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
 		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
 //		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "jsgf");
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
-		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, grammarId);
+		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, grammarId);
 		System.out.println("---listener, asrConfig = " + asrConfig.getStringConfig());
 		
 		listening();
