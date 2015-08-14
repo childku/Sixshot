@@ -25,10 +25,10 @@ public class Listener {
 	
 	private AsrConfig asrConfig = new AsrConfig();
 	
-	private String  asrCapKey = "asr.cloud.freetalk";
+//	private String  asrCapKey = "asr.cloud.freetalk";
 //	private String  asrCapKey = "asr.local.grammar";
 //	private String  asrCapKey = "asr.local.grammar.chinese";
-//	private String  asrCapKey = "asr.local.grammar.chinese.v4";
+	private String  asrCapKey = "asr.local.grammar.chinese.v4";
 	
 	private Sixshot brain = null;
 	
@@ -58,30 +58,31 @@ public class Listener {
 				classPath + "libs/hci_sys_jni.dll",
 				classPath + "libs/hci_asr.dll" ,
 				classPath + "libs/hci_asr_jni.dll",
-				classPath + "libs/hci_asr_cloud_recog.dll",
-//				classPath + "libs/hci_asr_local_recog.dll"
+//				classPath + "libs/hci_asr_cloud_recog.dll",
+//				classPath + "libs/hci_asr_local_recog.dll",
 //				classPath + "libs/hci_asr_local_v4_recog.dll",
 				
-//				classPath + "libs/libmmd.dll",
-//				classPath + "libs/mkl_avx.dll",
-//				classPath + "libs/mkl_avx2.dll",
-//				classPath + "libs/mkl_core.dll",
-//				classPath + "libs/mkl_p4.dll",
-//				classPath + "libs/mkl_p4m.dll",
-//				classPath + "libs/mkl_p4m3.dll",
-//				classPath + "libs/mkl_p4p.dll",
-//				classPath + "libs/mkl_rt.dll",
-//				classPath + "libs/mkl_sequential.dll",
-//				classPath + "libs/mkl_vml_avx.dll",
-//				classPath + "libs/mkl_vml_avx2.dll",
-//				classPath + "libs/mkl_vml_cmpt.dll",
-//				classPath + "libs/mkl_vml_ia.dll",
-//				classPath + "libs/mkl_vml_p4.dll",
-//				classPath + "libs/mkl_vml_p4m.dll",
-//				classPath + "libs/mkl_vml_p4m2.dll",
-//				classPath + "libs/mkl_vml_p4m3.dll",
-//				classPath + "libs/mkl_vml_p4p.dll",
-//				classPath + "libs/svml_dispmd.dll"
+				classPath + "libs/libmmd.dll",
+				classPath + "libs/mkl_avx.dll",
+				classPath + "libs/mkl_avx2.dll",
+				classPath + "libs/mkl_core.dll",
+				classPath + "libs/mkl_p4.dll",
+				classPath + "libs/mkl_p4m.dll",
+				classPath + "libs/mkl_p4m3.dll",
+				classPath + "libs/mkl_p4p.dll",
+				classPath + "libs/mkl_rt.dll",
+				classPath + "libs/mkl_sequential.dll",
+				classPath + "libs/mkl_vml_avx.dll",
+				classPath + "libs/mkl_vml_avx2.dll",
+				classPath + "libs/mkl_vml_cmpt.dll",
+				classPath + "libs/mkl_vml_ia.dll",
+				classPath + "libs/mkl_vml_p4.dll",
+				classPath + "libs/mkl_vml_p4m.dll",
+				classPath + "libs/mkl_vml_p4m2.dll",
+				classPath + "libs/mkl_vml_p4m3.dll",
+				classPath + "libs/mkl_vml_p4p.dll",
+				classPath + "libs/svml_dispmd.dll",
+				classPath + "libs/hci_asr_local_v4_recog.dll"
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
@@ -164,25 +165,28 @@ public class Listener {
 		System.out.println("---listener, grammar = " + grammar);
 //		String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
 		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
-		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
 //		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "jsgf");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
+//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10217");
 //		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, grammarId);
 		System.out.println("---listener, asrConfig = " + asrConfig.getStringConfig());
 		
-		listening();
+		listening(grammar);
     }
     
-	private void listening(){
+	private void listening(String grammar){
 		System.out.println("---in listener， recorder state is : " + recorder.getRecorderState());
 		if(recorder.getRecorderState() == ASRCommonRecorder.RECORDER_STATE_IDLE){
 			try {
-				String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
+//				String grammar = "上海机场\r\n重庆火车\r\n广州银行\r\n天津卫视\r\n三峡水利";
 				System.out.println("---in listener  recorder start");
-				recorder.start(asrConfig.getStringConfig(), null);
+				recorder.start(asrConfig.getStringConfig(), grammar);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}else{
+			throw new RuntimeException("---listener, listener 忙");
 		}
 	}
 	
@@ -190,7 +194,7 @@ public class Listener {
 
 		@Override
 		public void onRecorderEventError(RecorderEvent recorderEvent, int errorCode) {
-			System.out.println(" listener 出现错误，错误码为" + errorCode);	
+			System.out.println("---listener, 出现错误，错误码为" + errorCode);	
 		}
 
 		//识别完成回调

@@ -72,10 +72,10 @@ public class Sixshot {
 		// 初始化System
 		System.out.println("---engine, initParam: " + initparam.getStringConfig());
 		int errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
-		if(errorCode != HciErrorCode.HCI_ERR_NONE){
-			System.out.println("---engine, init error: " + errorCode);
-		}else{
+		if(errorCode == HciErrorCode.HCI_ERR_NONE){
 			System.out.println("---engine, init success!");
+		}else{
+			System.out.println("---engine, init error: " + errorCode);
 		}
 
 	}
