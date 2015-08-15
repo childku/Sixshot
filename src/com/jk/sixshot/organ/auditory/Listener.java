@@ -168,7 +168,7 @@ public class Listener {
 //				String grammar = "上海机场\r\n重庆火车\r\n广州银行\r\n天津卫视\r\n三峡水利";
 				System.out.println("---in listener  recorder start");
 				recorder.start(asrConfig.getStringConfig(), null);
-				recorder.start(asrConfig.getStringConfig(), grammar);
+//				recorder.start(asrConfig.getStringConfig(), grammar);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

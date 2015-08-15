@@ -119,6 +119,8 @@ public class Sixshot {
 		
 //		set path = C:\Program Files (x86)\Java\jdk1.7.0_13\bin
 //		java -jar sixhot.jar Y:/Documents/workspace/20150730-voice/Sixshot/resources/
+//		git update-index --assume-unchanged resources/log/*
+//		git update-index --assume-unchanged resources/user-info/*
 	}
 	
 // 背诗
