@@ -1,2 +1,3 @@
 bin/
-Log/
+resources/log
+resources/user/user-info
