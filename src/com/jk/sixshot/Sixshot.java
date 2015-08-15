@@ -5,7 +5,6 @@ import java.util.List;
 import com.jk.sixshot.organ.auditory.Listener;
 import com.jk.sixshot.organ.language.Speaker;
 import com.jk.sixshot.organ.language.StatementAnalyzer;
-import com.jk.sixshot.utils.Utils;
 import com.sinovoice.hcicloudsdk.api.HciCloudSys;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
 import com.sinovoice.hcicloudsdk.common.HciErrorCode;
@@ -13,7 +12,8 @@ import com.sinovoice.hcicloudsdk.common.InitParam;
 
 public class Sixshot {
 
-	private Account account = null;
+	public static Configuration config = null;
+	
 	private Listener  listener = null;
 	private StatementAnalyzer analyzer = new StatementAnalyzer();
 	private Speaker speaker = null;
@@ -22,21 +22,19 @@ public class Sixshot {
 		init();
 	}
 	private void init() {
-		initAccount();
-		initSysLibs();
+		loadSysLibs();
+		
 		initEngine();
 		initListener();
 		initSpeaker();
 	}
-	private void initAccount(){
-		account = Utils.getAccount();
-	}
-	private void initSysLibs(){
-		String classPath = Utils.getRootConfigPath();
+	
+	private void loadSysLibs(){
+		String classPath = Sixshot.config.getSystem().getSourcePath();
 		String sysLibPath[] = new String[]{
-				classPath + "libs/libcurl.dll" ,
-				classPath + "libs/hci_sys.dll" ,
-				classPath + "libs/hci_sys_jni.dll" 
+				classPath + "dlls/windows/libcurl.dll" ,
+				classPath + "dlls/windows/hci_sys.dll" ,
+				classPath + "dlls/windows/hci_sys_jni.dll" 
 		};
 		HciLibPath.setSysLibPath(sysLibPath);
 	}
@@ -44,8 +42,8 @@ public class Sixshot {
 	private void initEngine(){
 
 		//系统初始化及获取能力信息
-		String authPath = Utils.getRootConfigPath() + "user-info/";
-		String logDirPath = "./Log/";
+		String authPath = Sixshot.config.getSystem().getSourcePath() + "user-info/";
+		String logDirPath =  Sixshot.config.getSystem().getSourcePath() + "log/";
 		
 		//前置条件：无
 		InitParam initparam = new InitParam();
@@ -54,11 +52,11 @@ public class Sixshot {
 		// 是否自动访问云授权,详见  获取授权/更新授权文件处注释
 		initparam.addParam(InitParam.PARAM_KEY_AUTO_CLOUD_AUTH, "no");
 		// 灵云云服务的接口地址，此项必填
-		initparam.addParam(InitParam.PARAM_KEY_CLOUD_URL, account.getCloudUrl());	
+		initparam.addParam(InitParam.PARAM_KEY_CLOUD_URL, Sixshot.config.getVoice().getCloudUrl());	
 		// 开发者Key，此项必填，由捷通华声提供
-		initparam.addParam(InitParam.PARAM_KEY_DEVELOPER_KEY, account.getDeveloperKey());
+		initparam.addParam(InitParam.PARAM_KEY_DEVELOPER_KEY, Sixshot.config.getVoice().getDeveloperKey());
 		// 开发者ID，此项必填，由捷通华声提供
-		initparam.addParam(InitParam.PARAM_KEY_APP_KEY, account.getAppKey());
+		initparam.addParam(InitParam.PARAM_KEY_APP_KEY, Sixshot.config.getVoice().getAppKey());
 		//日志的路径，可选，如果不传或者为空则不生成日志
 		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, logDirPath);
 //		initparam.addParam(InitParam.PARAM_KEY_LOG_FILE_PATH, null);
@@ -72,19 +70,19 @@ public class Sixshot {
 		// 初始化System
 		System.out.println("---engine, initParam: " + initparam.getStringConfig());
 		int errorCode = HciCloudSys.hciInit(initparam.getStringConfig(), null);
-		if(errorCode != HciErrorCode.HCI_ERR_NONE){
-			System.out.println("---engine, init error: " + errorCode);
-		}else{
+		if(errorCode == HciErrorCode.HCI_ERR_NONE){
 			System.out.println("---engine, init success!");
+		}else{
+			System.out.println("---engine, init error: " + errorCode);
 		}
 
 	}
 	private void initListener(){
-		listener = new Listener(this, account);
+		listener = new Listener(this);
 	}
 	
 	private void initSpeaker(){
-		speaker = new Speaker(this, account);
+		speaker = new Speaker(this);
 	}
 	
 	/**
@@ -114,8 +112,13 @@ public class Sixshot {
 	}
 	
 	public static void main(String[] args) {
+		config = new Configuration(args[0]);
+		
 		Sixshot sixshot = new Sixshot();
 		sixshot.weakup();
+		
+//		set path = C:\Program Files (x86)\Java\jdk1.7.0_13\bin
+//		java -jar sixhot.jar Y:/Documents/workspace/20150730-voice/Sixshot/resources/
 	}
 	
 // 背诗

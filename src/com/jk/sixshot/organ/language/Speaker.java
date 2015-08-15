@@ -1,8 +1,6 @@
 package com.jk.sixshot.organ.language;
 
-import com.jk.sixshot.Account;
 import com.jk.sixshot.Sixshot;
-import com.jk.sixshot.utils.Utils;
 import com.sinovoice.hcicloudsdk.api.HciLibPath;
 import com.sinovoice.hcicloudsdk.common.tts.TtsConfig;
 import com.sinovoice.hcicloudsdk.common.tts.TtsInitParam;
@@ -11,8 +9,6 @@ import com.sinovoice.hcicloudsdk.player.TTSCommonPlayer.PlayerEvent;
 import com.sinovoice.hcicloudsdk.player.TTSPlayerListener;
 public class Speaker {
 
-	private Account account = null;
-	
 	//TTS Player
 	private TTSPlayer ttsPlayer = null;
 	
@@ -25,9 +21,8 @@ public class Speaker {
 		init();
 	}
 	
-	public Speaker(Sixshot brain, Account account){
+	public Speaker(Sixshot brain){
 		this.brain = brain;
-		this.account = account;
 		init();
 	}
 
@@ -44,8 +39,8 @@ public class Speaker {
 		ttsPlayer =new TTSPlayer();
 		TtsInitParam ttsInitParam = new TtsInitParam();
 		//本地音库路径
-    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, Utils.getRootConfigPath() + "voice-data/");
-    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_INIT_CAP_KEYS, account.getTtsCapKey());
+    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_DATA_PATH, Sixshot.config.getSystem().getSourcePath() + "voice-data/");
+    	ttsInitParam.addParam(TtsInitParam.PARAM_KEY_INIT_CAP_KEYS, Sixshot.config.getVoice().getTtsCapKey());
     	//播放器初始化
     	ttsPlayer.init(ttsInitParam.getStringConfig(), new PlayerListener());
     	if(ttsPlayer.getPlayerState() != TTSPlayer.PLAYER_STATE_IDLE){
@@ -60,7 +55,7 @@ public class Speaker {
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_ADUIO_FORMAT, "pcm16k16bit");
 		//tts.local.xixi.v6
 		//所使用能力
-		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, account.getTtsCapKey());
+		ttsConfig.addParam(TtsConfig.PARAM_KEY_CAP_KEY, Sixshot.config.getVoice().getTtsCapKey());
 		
 		//播放速度
 		ttsConfig.addParam(TtsConfig.PARAM_KEY_SPEED, "1");
@@ -104,17 +99,17 @@ public class Speaker {
 		}		
 	}
 	private static void importLibs(){
-		String classPath = Utils.getRootConfigPath();
+		String classPath = Sixshot.config.getSystem().getSourcePath();
 		String ttsLibPath[] = new String[]{
-				classPath + "libs/libcurl.dll",
-				classPath + "libs/jtopus.dll",
-				classPath + "libs/jtspeex.dll",
-				classPath + "libs/hci_sys.dll",
-				classPath + "libs/hci_tts.dll",
-				classPath + "libs/hci_tts_local_v6_synth.dll",
-//				path + "libs/hci_tts_local_synth.dll",
-				classPath + "libs/hci_tts_cloud_synth.dll",
-				classPath + "libs/hci_tts_jni.dll"
+				classPath + "dlls/windows/libcurl.dll",
+				classPath + "dlls/windows/jtopus.dll",
+				classPath + "dlls/windows/jtspeex.dll",
+				classPath + "dlls/windows/hci_sys.dll",
+				classPath + "dlls/windows/hci_tts.dll",
+				classPath + "dlls/windows/hci_tts_local_v6_synth.dll",
+//				path + "dlls/windows/hci_tts_local_synth.dll",
+				classPath + "dlls/windows/hci_tts_cloud_synth.dll",
+				classPath + "dlls/windows/hci_tts_jni.dll"
 		};
 		HciLibPath.setTtsLibPath(ttsLibPath);
 	}

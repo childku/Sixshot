@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="lib" path="libs/hcicloud_player-3.9.jar"/>
 	<classpathentry kind="lib" path="libs/hcicloud_recorder-3.9.jar"/>
 	<classpathentry kind="lib" path="libs/hcicloud-3.9.jar"/>
