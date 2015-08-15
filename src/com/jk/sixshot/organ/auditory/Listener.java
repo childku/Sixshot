@@ -22,7 +22,6 @@ public class Listener {
 	private ASRRecorder recorder = new ASRRecorder();
 	
 	private AsrConfig asrConfig = new AsrConfig();
-	
 	private Sixshot brain = null;
 	
 	public Listener(Sixshot brain){
@@ -151,7 +150,7 @@ public class Listener {
 		String grammar = loadGrammarFile(classPath + "wordlist_utf8.txt");
 		System.out.println("---listener, grammar = " + grammar);
 //		String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
-//		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
+		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
 //		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
 //		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "jsgf");
 		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
@@ -169,7 +168,7 @@ public class Listener {
 //				String grammar = "上海机场\r\n重庆火车\r\n广州银行\r\n天津卫视\r\n三峡水利";
 				System.out.println("---in listener  recorder start");
 				recorder.start(asrConfig.getStringConfig(), null);
-//				recorder.start(asrConfig.getStringConfig(), grammar);
+				recorder.start(asrConfig.getStringConfig(), grammar);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
