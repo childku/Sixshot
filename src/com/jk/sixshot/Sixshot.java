@@ -1,6 +1,7 @@
 package com.jk.sixshot;
 
 import java.util.List;
+import java.util.Timer;
 
 import com.jk.sixshot.organ.auditory.Listener;
 import com.jk.sixshot.organ.language.Speaker;
@@ -17,6 +18,8 @@ public class Sixshot {
 	private Listener  listener = null;
 	private StatementAnalyzer analyzer = new StatementAnalyzer();
 	private Speaker speaker = null;
+	
+	private boolean listenerIdle = true;
 	
 	public Sixshot(){
 		init();
@@ -108,20 +111,56 @@ public class Sixshot {
 	}
 	
 	public void weakup(){
-		listener.listen();
+		try{
+			setListenerIdle(false);
+			listener.listen();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	public static void main(String[] args) {
 		config = new Configuration(args[0]);
 		
 		Sixshot sixshot = new Sixshot();
-		sixshot.weakup();
+		try{
+			 Timer timer = new Timer();  
+		     // 在1秒后执行此任务,每次间隔2秒,如果传递一个Data参数,就可以在某个固定的时间执行这个任务.  
+		     timer.schedule(new Task(sixshot), 1000, 1500);  
+		}catch(Exception e){
+			e.printStackTrace();
+			if(e.getMessage().equals("什么也没说")){
+				System.out.println("---engine, 什么也没说，重新唤醒" );
+				sixshot.weakup();
+			}
+		}
 		
 //		set path = C:\Program Files (x86)\Java\jdk1.7.0_13\bin
 //		java -jar sixhot.jar Y:/Documents/workspace/20150730-voice/Sixshot/resources/
 //		git update-index --assume-unchanged resources/log/*
 //		git update-index --assume-unchanged resources/user-info/*
 	}
+	
+	public boolean isListenerIdle() {
+		return listenerIdle;
+	}
+	public void setListenerIdle(boolean listenerIdle) {
+		this.listenerIdle = listenerIdle;
+	}
+	
+    static class Task extends java.util.TimerTask {
+    	private Sixshot brain = null;
+    	
+    	public Task(Sixshot brain){
+    		this.brain = brain;
+    	}
+        @Override  
+        public void run() {  
+            if(brain.isListenerIdle()){
+            	brain.weakup();
+            }
+        }  
+    } 
 	
 // 背诗
 // 儿歌

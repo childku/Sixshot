@@ -181,7 +181,10 @@ public class Listener {
 
 		@Override
 		public void onRecorderEventError(RecorderEvent recorderEvent, int errorCode) {
-			System.out.println("---listener, 出现错误，错误码为" + errorCode);	
+			System.out.println("---listener, 出现错误，错误码为" + errorCode);
+//			throw new SpeakNothingException();
+			throw new RuntimeException("什么也没说");
+//			brain.weakup();
 		}
 
 		//识别完成回调
@@ -201,7 +204,8 @@ public class Listener {
 				System.out.println("----" + statement);
 				if(statement.trim().equals("")){
 //					System.out.println("---listener, to be weakup, recorder state is : " + recorder.getRecorderState());
-					brain.weakup();
+//					brain.weakup();
+					brain.setListenerIdle(true);
 				}else{
 					brain.analyze(statement);
 				}
