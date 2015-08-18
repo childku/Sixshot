@@ -46,27 +46,27 @@ public class Listener {
 //				classPath + "dlls/windows/hci_asr_local_recog.dll",
 //				classPath + "dlls/windows/hci_asr_local_v4_recog.dll",
 				
-//				classPath + "dlls/windows/libmmd.dll",
-//				classPath + "dlls/windows/mkl_avx.dll",
-//				classPath + "dlls/windows/mkl_avx2.dll",
-//				classPath + "dlls/windows/mkl_core.dll",
-//				classPath + "dlls/windows/mkl_p4.dll",
-//				classPath + "dlls/windows/mkl_p4m.dll",
-//				classPath + "dlls/windows/mkl_p4m3.dll",
-//				classPath + "dlls/windows/mkl_p4p.dll",
-//				classPath + "dlls/windows/mkl_rt.dll",
-//				classPath + "dlls/windows/mkl_sequential.dll",
-//				classPath + "dlls/windows/mkl_vml_avx.dll",
-//				classPath + "dlls/windows/mkl_vml_avx2.dll",
-//				classPath + "dlls/windows/mkl_vml_cmpt.dll",
-//				classPath + "dlls/windows/mkl_vml_ia.dll",
-//				classPath + "dlls/windows/mkl_vml_p4.dll",
-//				classPath + "dlls/windows/mkl_vml_p4m.dll",
-//				classPath + "dlls/windows/mkl_vml_p4m2.dll",
-//				classPath + "dlls/windows/mkl_vml_p4m3.dll",
-//				classPath + "dlls/windows/mkl_vml_p4p.dll",
-//				classPath + "dlls/windows/svml_dispmd.dll",
-//				classPath + "dlls/windows/hci_asr_local_v4_recog.dll"
+				classPath + "dlls/windows/libmmd.dll",
+				classPath + "dlls/windows/mkl_avx.dll",
+				classPath + "dlls/windows/mkl_avx2.dll",
+				classPath + "dlls/windows/mkl_core.dll",
+				classPath + "dlls/windows/mkl_p4.dll",
+				classPath + "dlls/windows/mkl_p4m.dll",
+				classPath + "dlls/windows/mkl_p4m3.dll",
+				classPath + "dlls/windows/mkl_p4p.dll",
+				classPath + "dlls/windows/mkl_rt.dll",
+				classPath + "dlls/windows/mkl_sequential.dll",
+				classPath + "dlls/windows/mkl_vml_avx.dll",
+				classPath + "dlls/windows/mkl_vml_avx2.dll",
+				classPath + "dlls/windows/mkl_vml_cmpt.dll",
+				classPath + "dlls/windows/mkl_vml_ia.dll",
+				classPath + "dlls/windows/mkl_vml_p4.dll",
+				classPath + "dlls/windows/mkl_vml_p4m.dll",
+				classPath + "dlls/windows/mkl_vml_p4m2.dll",
+				classPath + "dlls/windows/mkl_vml_p4m3.dll",
+				classPath + "dlls/windows/mkl_vml_p4p.dll",
+				classPath + "dlls/windows/svml_dispmd.dll",
+				classPath + "dlls/windows/hci_asr_local_v4_recog.dll"
 		};
 		HciLibPath.setAsrLibPath(asrLibPath);
 	}
@@ -81,7 +81,13 @@ public class Listener {
     	recorder = new ASRRecorder();
 		AsrInitParam initParam = new AsrInitParam();
 		initParam.addParam(AsrInitParam.PARAM_KEY_INIT_CAP_KEYS, Sixshot.config.getVoice().getAsrCapKey());
+		
 		initParam.addParam(AsrInitParam.PARAM_KEY_DATA_PATH, Sixshot.config.getSystem().getSourcePath() + "voice-data/");
+		
+		AsrGrammarId id = getByLoadGrammar(asrConfig.getStringConfig(), null);
+		String classPath = Sixshot.config.getSystem().getSourcePath();
+	    String grammar = loadGrammarFile(classPath + "wordlist_utf8.txt");
+		ASRRecorder.loadGrammar(classPath + "wordlist_utf8.txt", grammar, id);
 		
 		System.out.println("---listener, asr param = " + initParam.getStringConfig());
 		recorder.init(initParam.getStringConfig(), new RecorderListener());
@@ -97,14 +103,15 @@ public class Listener {
 	 * @param grammar 加载的语法字符串
 	 * @return
 	 */
-	private String getByLoadGrammar(String grammarConfig, String grammar) {
-		AsrGrammarId grammarId = new AsrGrammarId();
-		
-		int errorCode = HciCloudAsr.hciAsrLoadGrammar(grammarConfig, grammar, grammarId);
-		
-		System.out.println("---listener, HciCloudAsr Frame LoadGrammar return:" + errorCode);
-		return grammarId.getGrammarId() + "";
-	}
+//	private String getByLoadGrammar(String grammarConfig, String grammar) {
+//		AsrGrammarId grammarId = new AsrGrammarId();
+//		
+//		int errorCode = HciCloudAsr.hciAsrLoadGrammar(grammarConfig, grammar, grammarId);
+//		
+//		System.out.println("---listener, HciCloudAsr Frame LoadGrammar return:" + errorCode);
+//		return grammarId.getGrammarId() + "";
+//	}
+	
 	
 	private String loadGrammarFile(String path) {
 		ByteArrayOutputStream baos = null;
@@ -144,31 +151,29 @@ public class Listener {
 		
 		asrConfig.addParam(AsrConfig.PARAM_KEY_CAP_KEY, Sixshot.config.getVoice().getAsrCapKey());
 		
-		asrConfig.addParam(AsrConfig.PARAM_KEY_IS_FILE, "no");
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "id");
-		String classPath = Sixshot.config.getSystem().getSourcePath();
-		String grammar = loadGrammarFile(classPath + "wordlist_utf8.txt");
-		System.out.println("---listener, grammar = " + grammar);
-//		String grammar = "上海机场\n重庆火车\n广州银行\n天津卫视\n三峡水利";
-		String grammarId = getByLoadGrammar(asrConfig.getStringConfig(), grammar);
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, AsrConfig.HCI_ASR_GRAMMAR_TYPE_ID);
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_TYPE, "jsgf");
-		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10252");
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, "10217");
-//		asrConfig.addParam(AsrConfig.PARAM_KEY_GRAMMAR_ID, grammarId);
-		System.out.println("---listener, asrConfig = " + asrConfig.getStringConfig());
-		
-		listening(grammar);
+		listening();
     }
     
-	private void listening(String grammar){
+    
+	private AsrGrammarId getByLoadGrammar(String grammarConfig, String grammar) {
+		AsrGrammarId grammarId = new AsrGrammarId();
+		
+		int errorCode = HciCloudAsr.hciAsrLoadGrammar(grammarConfig, grammar, grammarId);
+		
+		System.out.println("---listener, HciCloudAsr Frame LoadGrammar return:" + errorCode);
+		return grammarId;
+	}
+	
+	private void listening(){
 		System.out.println("---in listener， recorder state is : " + recorder.getRecorderState());
 		if(recorder.getRecorderState() == ASRCommonRecorder.RECORDER_STATE_IDLE){
 			try {
-//				String grammar = "上海机场\r\n重庆火车\r\n广州银行\r\n天津卫视\r\n三峡水利";
 				System.out.println("---in listener  recorder start");
+//				AsrGrammarId id = getByLoadGrammar(asrConfig.getStringConfig(), null);
+//				String classPath = Sixshot.config.getSystem().getSourcePath();
+//			    String grammar = loadGrammarFile(classPath + "wordlist_utf8.txt");
+//				ASRRecorder.loadGrammar(classPath + "wordlist_utf8.txt", grammar, id);
 				recorder.start(asrConfig.getStringConfig(), null);
-//				recorder.start(asrConfig.getStringConfig(), grammar);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -183,7 +188,7 @@ public class Listener {
 		public void onRecorderEventError(RecorderEvent recorderEvent, int errorCode) {
 			System.out.println("---listener, 出现错误，错误码为" + errorCode);
 //			throw new SpeakNothingException();
-			throw new RuntimeException("什么也没说");
+//			throw new RuntimeException("什么也没说");
 //			brain.weakup();
 		}
 
@@ -232,6 +237,7 @@ public class Listener {
 				}else if(event == RecorderEvent.RECORDER_EVENT_NO_VOICE_INPUT){
 					Thread.sleep(100);
 					System.out.println("无音频输入");
+					brain.setListenerIdle(true);
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
