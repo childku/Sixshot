@@ -19,6 +19,8 @@ public class Configuration {
 		
 		private String system = "linux";
 		private String sourcePath = null;
+		private boolean needAuth = false;
+
 		private boolean logable = false;
 		
 		public String getSystem() {
@@ -27,6 +29,14 @@ public class Configuration {
 
 		public void setSystem(String system) {
 			this.system = system;
+		}
+		
+		public boolean isNeedAuth() {
+			return needAuth;
+		}
+		
+		public void setNeedAuth(boolean needAuth) {
+			this.needAuth = needAuth;
 		}
 
 		public String getSourcePath() {
@@ -107,6 +117,7 @@ public class Configuration {
     	
     	system.setSourcePath(props.getProperty("system.source-path"));
     	system.setSystem(props.getProperty("system.system"));
+    	system.setNeedAuth(Boolean.valueOf(props.getProperty("system.need-auth")));
     	system.setLogable(Boolean.valueOf(props.getProperty("system.logable")));
     }
 

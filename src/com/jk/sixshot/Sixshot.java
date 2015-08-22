@@ -28,6 +28,7 @@ public class Sixshot {
 		loadSysLibs();
 		
 		initEngine();
+		auth();
 		initListener();
 		initSpeaker();
 	}
@@ -79,6 +80,17 @@ public class Sixshot {
 			System.out.println("---engine, init error: " + errorCode);
 		}
 
+	}
+	
+	
+	private void auth() {
+		if(config.getSystem().isNeedAuth()){
+			int result = HciCloudSys.hciCheckAuth();
+			if(result != HciErrorCode.HCI_ERR_NONE){
+				System.out.println("---engine, check auth failed : " + result);
+				HciCloudSys.hciRelease();
+			}
+		}
 	}
 	private void initListener(){
 		listener = new Listener(this);
